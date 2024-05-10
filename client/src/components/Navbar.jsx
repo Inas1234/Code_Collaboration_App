@@ -1,4 +1,5 @@
 import React from "react";
+import { Image } from '@chakra-ui/react'
 import {
   Box,
   Button,
@@ -6,6 +7,7 @@ import {
   Heading,
   Link,
   Spacer,
+  chakra,
   useColorModeValue,
 } from "@chakra-ui/react";
 
@@ -23,12 +25,13 @@ function Navbar() {
       bg={bgColor}
       borderBottom="1px"
       borderColor={borderColor}
+      backgroundColor="rgb(7, 15, 43)"
     >
       <Box p="2">
         <Link href="/" style={{ textDecoration: "none" }}>
-          <Heading size="md" color="teal.600">
-            Code Collaboration App
-          </Heading>
+          <div className="logocontainer">
+            <Heading  fontWeight="bold">CodeCrew</Heading>
+          </div>
         </Link>
       </Box>
       <Spacer />
@@ -39,7 +42,7 @@ function Navbar() {
           </Button>
         </Link>
         <Link ml={4} href="/register" style={{ textDecoration: "none" }}>
-          <Button colorScheme="orange" variant="solid">
+          <Button colorScheme="teal" variant="solid">
             Sign Up
           </Button>
         </Link>

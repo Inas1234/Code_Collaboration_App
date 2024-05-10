@@ -9,12 +9,15 @@ import {
   Heading,
   Text,
   Link,
+  useColorModeValue,
 } from "@chakra-ui/react";
 
 function Login() {
+  const bgColor = useColorModeValue("#1B1A55", "#1B1A55"); // Adjusting for light and dark mode if necessary
+
   return (
-    <>
-      <VStack spacing={4} p={8}>
+    <Box bg={bgColor} minH="100vh" display="flex" alignItems="center" justifyContent="center">
+      <VStack spacing={4} p={8} bg="#070F2B" boxShadow="md" rounded="md" maxWidth="400px" width="100%">
         <Heading size="lg">Login</Heading>
         <FormControl isRequired>
           <FormLabel>Email</FormLabel>
@@ -34,7 +37,7 @@ function Login() {
           </Link>
         </Text>
       </VStack>
-    </>
+    </Box>
   );
 }
 
