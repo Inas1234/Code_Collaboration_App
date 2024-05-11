@@ -1,23 +1,51 @@
+import React, { useEffect, useRef, useState } from "react";
 import { Box, HStack } from "@chakra-ui/react";
 import { Editor } from "@monaco-editor/react";
-import { useRef, useState } from "react";
 import LanguageSelector from "./LanguageSelector";
 import { languageTemplates } from "../constants";
 import Output from "./Output";
+import io from "socket.io-client";
 
-function CodeEditor() {
+// Assuming your room ID is passed as a prop to the CodeEditor
+function CodeEditor({ roomId }) {
   const editorRef = useRef();
   const [value, setValue] = useState("");
   const [language, setLanguage] = useState("cpp");
+  const socket = useRef(null);
+
+  useEffect(() => {
+    // Initialize Socket.IO connection
+    socket.current = io("http://localhost:8080");
+
+    // Emit an event to join the room
+    socket.current.emit("join_room", { roomId });
+
+    // Setup event listener for receiving code updates
+    socket.current.on("code_update", (newCode) => {
+      setValue(newCode);
+    });
+
+    // Clean up the effect
+    return () => {
+      socket.current.disconnect();
+    };
+  }, [roomId]);
 
   const onSelect = (language) => {
     setLanguage(language);
-    setValue(languageTemplates[language]);
+    const template = languageTemplates[language];
+    setValue(template);
+    socket.current.emit("code_change", { room: roomId, code: template });
   };
 
   const onMount = (editor) => {
     editorRef.current = editor;
     editor.focus();
+  };
+
+  const handleEditorChange = (newValue) => {
+    setValue(newValue);
+    socket.current.emit("code_change", { room: roomId, code: newValue });
   };
 
   return (
@@ -31,7 +59,7 @@ function CodeEditor() {
             language={language}
             onMount={onMount}
             value={value}
-            onChange={(newValue) => setValue(newValue)}
+            onChange={handleEditorChange}
           />
         </Box>
         <Output editorRef={editorRef} language={language} />

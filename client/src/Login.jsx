@@ -18,7 +18,7 @@ import { useAuth } from "./components/AuthContext";
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const { login } = useAuth(); // Destructure login function from context
+  const { login } = useAuth();
   const bgColor = useColorModeValue("#1B1A55", "#1B1A55");
   const navigate = useNavigate();
 
@@ -29,7 +29,7 @@ function Login() {
         username,
         password,
       });
-      login(response.data.token, response.data.username); // Update context
+      login(response.data.token, response.data.username);
       alert("Login successful!");
       navigate("/");
     } catch (error) {
