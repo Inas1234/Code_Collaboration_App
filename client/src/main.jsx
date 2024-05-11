@@ -11,6 +11,7 @@ import CreateProject from "./CreateProject.jsx";
 import JoinProject from "./JoinProject.jsx";
 import Archive from "./Archive.jsx";
 import Navbar from "./components/Navbar.jsx";
+import { AuthProvider } from "./components/AuthContext.jsx";
 
 const router = createBrowserRouter([
   {
@@ -46,8 +47,10 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ChakraProvider theme={theme}>
-      <Navbar />
-      <RouterProvider router={router} />
+      <AuthProvider>
+        <Navbar />
+        <RouterProvider router={router} />
+      </AuthProvider>
     </ChakraProvider>
   </React.StrictMode>
 );

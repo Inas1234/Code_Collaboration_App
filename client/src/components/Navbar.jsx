@@ -1,5 +1,4 @@
 import React from "react";
-import { Image } from '@chakra-ui/react'
 import {
   Box,
   Button,
@@ -7,13 +6,22 @@ import {
   Heading,
   Link,
   Spacer,
-  chakra,
   useColorModeValue,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  IconButton,
+  Portal,
 } from "@chakra-ui/react";
+import { ChevronDownIcon } from "@chakra-ui/icons";
+import { useAuth } from "./AuthContext";
 
 function Navbar() {
-  const bgColor = useColorModeValue("gray.200", "gray.700"); // Light mode dark mode responsive
+  const bgColor = useColorModeValue("gray.200", "gray.700");
   const borderColor = useColorModeValue("gray.300", "gray.600");
+  const { auth, logout } = useAuth();
+  const { token, username } = auth;
 
   return (
     <Flex
@@ -29,24 +37,60 @@ function Navbar() {
     >
       <Box p="2">
         <Link href="/" style={{ textDecoration: "none" }}>
-          <div className="logocontainer">
-            <Heading  fontWeight="bold">CodeCrew</Heading>
-          </div>
+          <Heading fontWeight="bold">CodeCrew</Heading>
         </Link>
       </Box>
       <Spacer />
-      <Box>
-        <Link href="/login" style={{ textDecoration: "none" }}>
-          <Button colorScheme="teal" variant="outline">
-            Login
-          </Button>
-        </Link>
-        <Link ml={4} href="/register" style={{ textDecoration: "none" }}>
-          <Button colorScheme="teal" variant="solid">
-            Sign Up
-          </Button>
-        </Link>
-      </Box>
+      {token ? (
+        <Flex alignItems="center">
+          <Link
+            href="/create-project"
+            style={{ textDecoration: "none", marginRight: "10px" }}
+          >
+            <Button colorScheme="teal" variant="outline">
+              Create a Project
+            </Button>
+          </Link>
+          <Link
+            href="/join-project"
+            style={{ textDecoration: "none", marginRight: "10px" }}
+          >
+            <Button colorScheme="teal" variant="outline">
+              Join a Project
+            </Button>
+          </Link>
+          <Menu>
+            <MenuButton
+              as={IconButton}
+              aria-label="Options"
+              borderRadius="full"
+              p={1}
+              colorScheme="teal"
+              icon={<Box as="span">{username ? username.charAt(0) : "U"}</Box>}
+              _hover={{ bg: "teal.500" }}
+              rightIcon={<ChevronDownIcon />}
+            ></MenuButton>
+            <Portal>
+              <MenuList>
+                <MenuItem onClick={logout}>Logout</MenuItem>
+              </MenuList>
+            </Portal>
+          </Menu>
+        </Flex>
+      ) : (
+        <Box>
+          <Link href="/login" style={{ textDecoration: "none" }}>
+            <Button colorScheme="teal" variant="outline">
+              Login
+            </Button>
+          </Link>
+          <Link ml={4} href="/register" style={{ textDecoration: "none" }}>
+            <Button colorScheme="teal" variant="solid">
+              Sign Up
+            </Button>
+          </Link>
+        </Box>
+      )}
     </Flex>
   );
 }
