@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 import {
   Box,
   Button,
@@ -9,25 +10,46 @@ import {
   VStack,
   Heading,
   useColorModeValue,
+  Select,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
+import { useAuth } from "./components/AuthContext";
 
-const socket = io("http://localhost:8080"); // Connect to the server
+const socket = io("http://localhost:8080");
 
 function CreateProject() {
   const [projectName, setProjectName] = useState("");
   const [description, setDescription] = useState("");
+  const [projectType, setProjectType] = useState("Normal");
+  const [duration, setDuration] = useState("");
   const bgColor = useColorModeValue("#1B1A55", "#1B1A55");
   const navigate = useNavigate();
+  const { auth } = useAuth();
+  const { userId } = auth;
 
-  const handleCreateProject = () => {
-    const roomId = Date.now().toString(); // Simple example to generate a room ID
-    socket.emit("create_room", { roomId });
-    socket.on("room_created", (room) => {
-      console.log(`Room created: ${room}`);
-      navigate(`/${room}`);
-    });
+  const handleCreateProject = async () => {
+    try {
+      const response = await axios.post(
+        "http://localhost:8080/projects/create",
+        {
+          name: projectName,
+          description,
+          userId,
+          type: projectType,
+          duration: projectType === "Interview" ? duration : null,
+        }
+      );
+      const { projectId } = response.data;
+      socket.emit("create_room", { roomId: projectId });
+      socket.on("room_created", (room) => {
+        console.log(`Room created: ${room}`);
+        navigate(`/${room}`);
+      });
+    } catch (error) {
+      console.error("Failed to create project:", error);
+      alert("Failed to create project");
+    }
   };
 
   return (
@@ -65,10 +87,31 @@ function CreateProject() {
             onChange={(e) => setDescription(e.target.value)}
           />
         </FormControl>
+        <FormControl isRequired>
+          <FormLabel>Project Type</FormLabel>
+          <Select
+            placeholder="Select project type"
+            value={projectType}
+            onChange={(e) => setProjectType(e.target.value)}
+          >
+            <option value="Normal">Normal</option>
+            <option value="Interview">Interview</option>
+          </Select>
+        </FormControl>
+        {projectType === "Interview" && (
+          <FormControl isRequired>
+            <FormLabel>Duration</FormLabel>
+            <Input
+              placeholder="Enter duration (e.g., 1h 30m)"
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+            />
+          </FormControl>
+        )}
         <Button
           colorScheme="teal"
           width="full"
-          mt={4}
+          mt="4"
           onClick={handleCreateProject}
         >
           Create Project

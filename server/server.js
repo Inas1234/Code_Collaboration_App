@@ -1,5 +1,6 @@
 const cors = require("cors");
 const users = require("./routes/users");
+const projects = require("./routes/projects");
 const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
@@ -8,7 +9,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "*", // Adjust according to your security requirements
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
@@ -16,13 +17,13 @@ const io = socketIo(server, {
 app.use(cors());
 app.use(express.json());
 app.use("/users", users);
+app.use("/projects", projects);
 
-// Socket.IO connection handler
 io.on("connection", (socket) => {
   console.log("New client connected: " + socket.id);
 
   socket.on("create_room", (data) => {
-    const room = data.roomId; // Assume roomId is passed from the client
+    const room = data.roomId;
     socket.join(room);
     console.log(`Room created: ${room}`);
     socket.emit("room_created", room);

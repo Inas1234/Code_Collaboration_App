@@ -10,7 +10,7 @@ router.get("/", async (req, res) => {
     const users = await pool.query("SELECT * FROM users");
     res.json(users.rows);
   } catch (err) {
-    console.error(err.message); // Logging the error to the console
+    console.error(err.message);
     res
       .status(500)
       .json({ message: "Something went wrong", error: err.message });
@@ -49,13 +49,18 @@ router.post("/login", async (req, res) => {
         password,
         user.rows[0].password
       );
+
       if (validPassword) {
         const token = jwt.sign(
           { userId: user.rows[0].user_id },
           process.env.JWT_SECRET,
           { expiresIn: "24h" }
         );
-        res.json({ token, username: user.rows[0].username });
+        res.json({
+          token,
+          username: user.rows[0].username,
+          userId: user.rows[0].user_id,
+        });
       } else {
         res.status(400).json({ message: "Invalid password" });
       }

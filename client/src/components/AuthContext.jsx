@@ -7,17 +7,20 @@ export const AuthProvider = ({ children }) => {
   const [auth, setAuth] = useState({
     token: localStorage.getItem("token"),
     username: localStorage.getItem("username"),
+    userId: localStorage.getItem("userId"),
   });
 
-  const login = (token, username) => {
+  const login = (token, username, userId) => {
     localStorage.setItem("token", token);
     localStorage.setItem("username", username);
-    setAuth({ token, username });
+    localStorage.setItem("userId", userId);
+    setAuth({ token, username, userId });
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("username");
+    localStorage.removeItem("userId");
     setAuth({});
   };
 

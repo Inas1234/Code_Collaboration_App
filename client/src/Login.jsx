@@ -29,7 +29,8 @@ function Login() {
         username,
         password,
       });
-      login(response.data.token, response.data.username);
+
+      login(response.data.token, response.data.username, response.data.userId);
       alert("Login successful!");
       navigate("/");
     } catch (error) {
