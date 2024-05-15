@@ -15,7 +15,7 @@ import { AuthProvider } from "./components/AuthContext.jsx";
 
 const router = createBrowserRouter([
   {
-    path: "/:roomID",
+    path: "/:roomId",
     element: <CodeCollab />,
   },
   {

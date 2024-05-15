@@ -26,7 +26,7 @@ function CreateProject() {
   const bgColor = useColorModeValue("#1B1A55", "#1B1A55");
   const navigate = useNavigate();
   const { auth } = useAuth();
-  const { userId } = auth;
+  const { userId, username } = auth;
 
   const handleCreateProject = async () => {
     try {
@@ -36,6 +36,7 @@ function CreateProject() {
           name: projectName,
           description,
           userId,
+          username,
           type: projectType,
           duration: projectType === "Interview" ? duration : null,
         }
