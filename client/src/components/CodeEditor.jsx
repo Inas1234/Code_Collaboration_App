@@ -4,15 +4,15 @@ import {
   HStack,
   VStack,
   Button,
-  List,
-  ListItem,
   Text,
   useClipboard,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { Editor } from "@monaco-editor/react";
 import LanguageSelector from "./LanguageSelector";
-import { languageTemplates } from "../constants";
+import { languageTemplates, languageIDs } from "../constants";
 import Output from "./Output";
+import SideMenu from "./SideMenu";
 import io from "socket.io-client";
 import { useAuth } from "./AuthContext";
 import { useNavigate, useParams } from "react-router-dom";
@@ -30,6 +30,7 @@ function CodeEditor() {
   const [isAdmin, setIsAdmin] = useState(false);
   const { roomId } = useParams();
   const { hasCopied, onCopy } = useClipboard(roomId);
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -102,19 +103,32 @@ function CodeEditor() {
     socket.current.emit("ban_user", { roomId, userIdToBan });
   };
 
-  const handleEndSession = () => {
+  const handleEndSession = async () => {
+    try {
+      await axios.post("http://localhost:8080/projects/stop", {
+        projectId: roomId,
+        languageId: languageIDs[language],
+      });
+    } catch (error) {
+      console.error("Failed to stop the session", error);
+    }
     socket.current.emit("end_session", { roomId });
   };
 
   return (
     <Box>
-      <HStack justifyContent="space-between" mb={4}>
-        <Text fontSize="lg">Room ID: {roomId}</Text>
+      <Box display="flex" justifyContent="flex-end">
+        <Button onClick={onOpen}>Info</Button>
+      </Box>
+      <Box textAlign="center" mb={4}>
+        <Text fontSize="lg" fontWeight="bold" mb={2}>
+          Room ID: {roomId}
+        </Text>
         <Button onClick={onCopy}>
           {hasCopied ? "Copied" : "Copy Room ID"}
         </Button>
-      </HStack>
-      <HStack spacing={4} alignItems="flex-start">
+      </Box>
+      <HStack spacing={4}>
         <Box w="50%">
           <LanguageSelector language={language} onSelect={onSelect} />
           <Editor
@@ -126,34 +140,18 @@ function CodeEditor() {
             onChange={handleEditorChange}
           />
         </Box>
-        <VStack w="50%">
-          <Output editorRef={editorRef} language={language} />
-        </VStack>
+        <Output editorRef={editorRef} language={language} />
       </HStack>
-      <Box w="100%">
-        <List spacing={3}>
-          {users.map((user) => (
-            <ListItem key={user}>
-              {user}
-              {isAdmin && userId !== user && (
-                <Button
-                  ml={4}
-                  colorScheme="red"
-                  size="sm"
-                  onClick={() => handleBanUser(user)}
-                >
-                  Ban
-                </Button>
-              )}
-            </ListItem>
-          ))}
-        </List>
-      </Box>
-      {isAdmin && (
-        <Button mt={4} colorScheme="red" onClick={handleEndSession}>
-          End Session
-        </Button>
-      )}
+
+      <SideMenu
+        isOpen={isOpen}
+        onClose={onClose}
+        users={users}
+        isAdmin={isAdmin}
+        userId={userId}
+        handleBanUser={handleBanUser}
+        handleEndSession={handleEndSession}
+      />
     </Box>
   );
 }

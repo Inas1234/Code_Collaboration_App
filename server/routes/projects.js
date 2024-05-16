@@ -143,4 +143,64 @@ router.get("/:projectId/isAdmin/:userId", async (req, res) => {
   }
 });
 
+router.get("/user/:userId/projects", async (req, res) => {
+  const { userId } = req.params;
+
+  if (!userId) {
+    return res.status(400).json({ message: "Missing user ID" });
+  }
+
+  try {
+    const userProjects = await pool.query(
+      `SELECT p.project_id, p.name, p.description, p.type, p.duration, p.admin, l.name as language_name,
+              pu.user_id, u.username
+       FROM projects p
+       JOIN project_users pu ON p.project_id = pu.projects_id
+       LEFT JOIN languages l ON p.language_id = l.id
+       LEFT JOIN users u ON pu.user_id = u.user_id
+       WHERE p.project_id IN (
+         SELECT projects_id FROM project_users WHERE user_id = $1
+       )`,
+      [userId]
+    );
+
+    const projects = {};
+
+    userProjects.rows.forEach((row) => {
+      if (!projects[row.project_id]) {
+        projects[row.project_id] = {
+          project_id: row.project_id,
+          name: row.name,
+          description: row.description,
+          type: row.type,
+          duration: row.duration,
+          admin: row.admin,
+          language_name: row.language_name,
+          users: new Map(), // Use a Map to ensure unique users
+        };
+      }
+      const userKey = `${row.user_id}-${row.username}`;
+      if (!projects[row.project_id].users.has(userKey)) {
+        projects[row.project_id].users.set(userKey, {
+          user_id: row.user_id,
+          username: row.username,
+        });
+      }
+    });
+
+    // Convert the Map to an array for each project's users
+    const response = Object.values(projects).map((project) => {
+      project.users = Array.from(project.users.values());
+      return project;
+    });
+
+    console.log("User Projects: ", response); // For debugging purposes
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("Fetch User Projects Error: ", error);
+    res.status(500).send("Server error");
+  }
+});
+
 module.exports = router;

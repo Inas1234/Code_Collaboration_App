@@ -17,6 +17,29 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.post("/getUsernames", async (req, res) => {
+  const { userIds } = req.body;
+
+  if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+    return res.status(400).json({ message: "Invalid user IDs" });
+  }
+
+  try {
+    const result = await pool.query(
+      "SELECT user_id, username FROM users WHERE user_id = ANY($1)",
+      [userIds]
+    );
+    const usernames = result.rows.map((row) => ({
+      id: row.user_id,
+      username: row.username,
+    }));
+    res.status(200).json({ usernames });
+  } catch (error) {
+    console.error("Error fetching usernames: ", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 router.post("/register", async (req, res) => {
   const { username, email, password } = req.body;
   const hashedPassword = await bcrypt.hash(password, 10);

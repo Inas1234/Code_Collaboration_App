@@ -16,6 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { ChevronDownIcon } from "@chakra-ui/icons";
 import { useAuth } from "./AuthContext";
+import { useNavigate } from "react-router-dom";
 
 function Navbar() {
   const bgColor = useColorModeValue("gray.200", "gray.700");
@@ -73,6 +74,11 @@ function Navbar() {
             <Portal>
               <MenuList>
                 <MenuItem onClick={logout}>Logout</MenuItem>
+                <MenuItem>
+                  <Link href="/archive" style={{ textDecoration: "none" }}>
+                    Archive
+                  </Link>
+                </MenuItem>
               </MenuList>
             </Portal>
           </Menu>

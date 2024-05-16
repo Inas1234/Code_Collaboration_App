@@ -8,6 +8,16 @@ export const languageVersions = {
   csharp: "6.12.0",
 };
 
+export const languageIDs = {
+  javascript: 1,
+  typescript: 2,
+  python: 3,
+  java: 4,
+  c: 5,
+  cpp: 6,
+  csharp: 7,
+};
+
 export const languageTemplates = {
   javascript: `console.log("Hello, World!");`,
   typescript: `console.log("Hello, World!");`,

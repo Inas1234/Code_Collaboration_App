@@ -73,13 +73,19 @@ io.on("connection", (socket) => {
   socket.on("end_session", ({ roomId }) => {
     if (rooms[roomId]) {
       Object.keys(rooms[roomId].users).forEach((socketId) => {
-        io.sockets.sockets.get(socketId).emit("session_ended");
-        io.sockets.sockets.get(socketId).disconnect();
+        const socketToNotify = io.sockets.sockets.get(socketId);
+        if (socketToNotify) {
+          socketToNotify.emit("session_ended");
+          socketToNotify.disconnect();
+        } else {
+          console.error(`Socket with ID ${socketId} not found`);
+        }
       });
       delete rooms[roomId];
+    } else {
+      console.error(`Room with ID ${roomId} not found`);
     }
   });
-
   socket.on("disconnect", () => {
     console.log("Client disconnected: " + socket.id);
     for (const roomId in rooms) {
