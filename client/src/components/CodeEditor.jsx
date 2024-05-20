@@ -13,6 +13,7 @@ import LanguageSelector from "./LanguageSelector";
 import { languageTemplates, languageIDs } from "../constants";
 import Output from "./Output";
 import SideMenu from "./SideMenu";
+import ChatComponent from "./ChatComponent"; // Import the ChatComponent
 import io from "socket.io-client";
 import { useAuth } from "./AuthContext";
 import { useNavigate, useParams } from "react-router-dom";
@@ -31,6 +32,7 @@ function CodeEditor() {
   const { roomId } = useParams();
   const { hasCopied, onCopy } = useClipboard(roomId);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isChatOpen, setIsChatOpen] = useState(false); // State for chat window
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -117,42 +119,56 @@ function CodeEditor() {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="flex-end">
-        <Button onClick={onOpen}>Info</Button>
-      </Box>
-      <Box textAlign="center" mb={4}>
-        <Text fontSize="lg" fontWeight="bold" mb={2}>
-          Room ID: {roomId}
-        </Text>
-        <Button onClick={onCopy}>
-          {hasCopied ? "Copied" : "Copy Room ID"}
-        </Button>
-      </Box>
-      <HStack spacing={4}>
-        <Box w="50%">
-          <LanguageSelector language={language} onSelect={onSelect} />
-          <Editor
-            height="75vh"
-            theme="vs-dark"
-            language={language}
-            onMount={onMount}
-            value={value}
-            onChange={handleEditorChange}
-          />
-        </Box>
-        <Output editorRef={editorRef} language={language} />
-      </HStack>
-
-      <SideMenu
-        isOpen={isOpen}
-        onClose={onClose}
-        users={users}
-        isAdmin={isAdmin}
-        userId={userId}
-        handleBanUser={handleBanUser}
-        handleEndSession={handleEndSession}
+  <Box display="flex" justifyContent="flex-end">
+    <Button onClick={onOpen}>Info</Button>
+  </Box>
+  <Box textAlign="center" mb={4}>
+    <Text fontSize="lg" fontWeight="bold" mb={2}>
+      Room ID: {roomId}
+    </Text>
+    <Button onClick={onCopy}>
+      {hasCopied ? "Copied" : "Copy Room ID"}
+    </Button>
+  </Box>
+  <HStack spacing={4}>
+    <Box w="50%">
+      <LanguageSelector language={language} onSelect={onSelect} />
+      <Editor
+        height="75vh"
+        theme="vs-dark"
+        language={language}
+        onMount={onMount}
+        value={value}
+        onChange={handleEditorChange}
       />
     </Box>
+    <Output editorRef={editorRef} language={language} />
+  </HStack>
+
+  <SideMenu
+    isOpen={isOpen}
+    onClose={onClose}
+    users={users}
+    isAdmin={isAdmin}
+    userId={userId}
+    handleBanUser={handleBanUser}
+    handleEndSession={handleEndSession}
+  />
+
+  {isChatOpen && <ChatComponent onClose={() => setIsChatOpen(false)} />} {/* Render ChatComponent if chat is open */}
+
+  {!isChatOpen && (
+    <Button
+      position="fixed"
+      bottom="10px"
+      right="10px"
+      onClick={() => setIsChatOpen(true)}
+    >
+      Chat
+    </Button>
+  )}
+</Box>
+
   );
 }
 
