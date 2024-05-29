@@ -10,17 +10,6 @@ import {
 } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
 import { useAuth } from "./components/AuthContext";
-import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
-
-const mapContainerStyle = {
-  height: "200px",
-  width: "100%",
-};
-
-const center = {
-  lat: 44.2035, // Latitude of the University of Zenica
-  lng: 17.9071, // Longitude of the University of Zenica
-};
 
 function Home() {
   const { auth } = useAuth();
@@ -148,17 +137,16 @@ function Home() {
           align="start"
         >
           <Heading size="md">HQ</Heading>
-          {/* Google Maps Integration */}
           <Box height="200px" width="100%" bg="gray.300">
-            <LoadScript googleMapsApiKey="YOUR_GOOGLE_MAPS_API_KEY">
-              <GoogleMap
-                mapContainerStyle={mapContainerStyle}
-                center={center}
-                zoom={15}
-              >
-                <Marker position={center} />
-              </GoogleMap>
-            </LoadScript>
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5720.736875007957!2d17.89267169357909!3d44.1994776!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x475ee24259b7e2c9%3A0xbbbe13ba46b02200!2sCampus%20of%20University%20of%20Zenica!5e0!3m2!1sen!2sba!4v1716986412913!5m2!1sen!2sba"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            ></iframe>
           </Box>
         </VStack>
       </Flex>
