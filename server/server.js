@@ -28,7 +28,7 @@ io.on("connection", (socket) => {
     const { roomId, userId } = data;
     socket.join(roomId);
     if (!rooms[roomId]) {
-      rooms[roomId] = { users: {}, code: "" };
+      rooms[roomId] = { users: {}, code: "", messages: [] }; // Add messages array to room
     }
     rooms[roomId].users[socket.id] = userId;
     console.log(`Room created: ${roomId}`);
@@ -40,13 +40,14 @@ io.on("connection", (socket) => {
     const { roomId, userId } = data;
     socket.join(roomId);
     if (!rooms[roomId]) {
-      rooms[roomId] = { users: {}, code: "" };
+      rooms[roomId] = { users: {}, code: "", messages: [] }; // Add messages array to room
     }
     rooms[roomId].users[socket.id] = userId;
     console.log(`Room joined: ${roomId}`);
     socket.emit("room_joined", roomId);
 
     socket.emit("code_update", rooms[roomId].code);
+    socket.emit("chat_history", rooms[roomId].messages); // Send chat history
     io.to(roomId).emit("users_update", Object.values(rooms[roomId].users));
   });
 
@@ -55,6 +56,14 @@ io.on("connection", (socket) => {
       console.log(`Code change in room ${room}: ${code}`);
       rooms[room].code = code;
       io.to(room).emit("code_update", code);
+    }
+  });
+
+  socket.on("send_message", ({ roomId, username, text }) => {
+    if (rooms[roomId]) {
+      const message = { username, text, timestamp: new Date() };
+      rooms[roomId].messages.push(message);
+      io.to(roomId).emit("message", message);
     }
   });
 
@@ -86,6 +95,7 @@ io.on("connection", (socket) => {
       console.error(`Room with ID ${roomId} not found`);
     }
   });
+
   socket.on("disconnect", () => {
     console.log("Client disconnected: " + socket.id);
     for (const roomId in rooms) {

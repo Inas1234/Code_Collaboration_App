@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   HStack,
-  VStack,
   Button,
   Text,
   useClipboard,
@@ -13,7 +12,7 @@ import LanguageSelector from "./LanguageSelector";
 import { languageTemplates, languageIDs } from "../constants";
 import Output from "./Output";
 import SideMenu from "./SideMenu";
-import ChatComponent from "./ChatComponent"; // Import the ChatComponent
+import ChatComponent from "./ChatComponent";
 import io from "socket.io-client";
 import { useAuth } from "./AuthContext";
 import { useNavigate, useParams } from "react-router-dom";
@@ -25,6 +24,8 @@ function CodeEditor() {
   const [language, setLanguage] = useState("cpp");
   const socket = useRef(null);
   const [users, setUsers] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
   const { auth } = useAuth();
   const { username, userId } = auth;
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ function CodeEditor() {
   const { roomId } = useParams();
   const { hasCopied, onCopy } = useClipboard(roomId);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [isChatOpen, setIsChatOpen] = useState(false); // State for chat window
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -51,6 +52,7 @@ function CodeEditor() {
 
   useEffect(() => {
     socket.current = io("http://localhost:8080");
+
     socket.current.emit("join_room", { roomId, userId });
 
     socket.current.on("code_update", (newCode) => {
@@ -74,14 +76,20 @@ function CodeEditor() {
       navigate("/");
     });
 
+    socket.current.on("message", (message) => {
+      console.log("Received message:", message);
+      setMessages((prevMessages) => [...prevMessages, message]);
+    });
+
     return () => {
       socket.current.off("code_update");
       socket.current.off("users_update");
       socket.current.off("session_ended");
       socket.current.off("banned");
+      socket.current.off("message");
       socket.current.disconnect();
     };
-  }, [roomId, navigate, userId]);
+  }, [roomId, navigate, userId, username]);
 
   const onSelect = (language) => {
     setLanguage(language);
@@ -117,58 +125,74 @@ function CodeEditor() {
     socket.current.emit("end_session", { roomId });
   };
 
+  const sendMessage = () => {
+    if (newMessage.trim()) {
+      const message = { username, text: newMessage, roomId };
+      console.log("Sending message:", message);
+      socket.current.emit("send_message", message);
+      setNewMessage(""); // Clear the input field after sending
+    }
+  };
+
   return (
     <Box>
-  <Box display="flex" justifyContent="flex-end">
-    <Button onClick={onOpen}>Info</Button>
-  </Box>
-  <Box textAlign="center" mb={4}>
-    <Text fontSize="lg" fontWeight="bold" mb={2}>
-      Room ID: {roomId}
-    </Text>
-    <Button onClick={onCopy}>
-      {hasCopied ? "Copied" : "Copy Room ID"}
-    </Button>
-  </Box>
-  <HStack spacing={4}>
-    <Box w="50%">
-      <LanguageSelector language={language} onSelect={onSelect} />
-      <Editor
-        height="75vh"
-        theme="vs-dark"
-        language={language}
-        onMount={onMount}
-        value={value}
-        onChange={handleEditorChange}
+      <Box display="flex" justifyContent="flex-end">
+        <Button onClick={onOpen}>Info</Button>
+      </Box>
+      <Box textAlign="center" mb={4}>
+        <Text fontSize="lg" fontWeight="bold" mb={2}>
+          Room ID: {roomId}
+        </Text>
+        <Button onClick={onCopy}>
+          {hasCopied ? "Copied" : "Copy Room ID"}
+        </Button>
+      </Box>
+      <HStack spacing={4}>
+        <Box w="50%">
+          <LanguageSelector language={language} onSelect={onSelect} />
+          <Editor
+            height="75vh"
+            theme="vs-dark"
+            language={language}
+            onMount={onMount}
+            value={value}
+            onChange={handleEditorChange}
+          />
+        </Box>
+        <Output editorRef={editorRef} language={language} />
+      </HStack>
+
+      <SideMenu
+        isOpen={isOpen}
+        onClose={onClose}
+        users={users}
+        isAdmin={isAdmin}
+        userId={userId}
+        handleBanUser={handleBanUser}
+        handleEndSession={handleEndSession}
       />
+
+      {isChatOpen && (
+        <ChatComponent
+          onClose={() => setIsChatOpen(false)}
+          messages={messages}
+          newMessage={newMessage}
+          setNewMessage={setNewMessage}
+          sendMessage={sendMessage}
+        />
+      )}
+
+      {!isChatOpen && (
+        <Button
+          position="fixed"
+          bottom="10px"
+          right="10px"
+          onClick={() => setIsChatOpen(true)}
+        >
+          Chat
+        </Button>
+      )}
     </Box>
-    <Output editorRef={editorRef} language={language} />
-  </HStack>
-
-  <SideMenu
-    isOpen={isOpen}
-    onClose={onClose}
-    users={users}
-    isAdmin={isAdmin}
-    userId={userId}
-    handleBanUser={handleBanUser}
-    handleEndSession={handleEndSession}
-  />
-
-  {isChatOpen && <ChatComponent onClose={() => setIsChatOpen(false)} />} {/* Render ChatComponent if chat is open */}
-
-  {!isChatOpen && (
-    <Button
-      position="fixed"
-      bottom="10px"
-      right="10px"
-      onClick={() => setIsChatOpen(true)}
-    >
-      Chat
-    </Button>
-  )}
-</Box>
-
   );
 }
 
