@@ -7,11 +7,25 @@ import {
   Button,
   Container,
   Flex,
-  Link,
 } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
+import { useAuth } from "./components/AuthContext";
+import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+
+const mapContainerStyle = {
+  height: "200px",
+  width: "100%",
+};
+
+const center = {
+  lat: 44.2035, // Latitude of the University of Zenica
+  lng: 17.9071, // Longitude of the University of Zenica
+};
 
 function Home() {
+  const { auth } = useAuth();
+  const isLoggedIn = !!auth.userId;
+
   return (
     <Container maxW="container.xxl" centerContent>
       <VStack spacing={70} mt={10} p={5} align="stretch">
@@ -19,19 +33,39 @@ function Home() {
           Unite, Code, Create
         </Heading>
         <div style={{ display: "flex", justifyContent: "center" }}>
-          <RouterLink
-            to="/create-project"
-            style={{ textDecoration: "none", marginRight: "10px" }}
-          >
-            <Button colorScheme="green" size="lg">
-              Create a Project
-            </Button>
-          </RouterLink>
-          <RouterLink to="/join-project" style={{ textDecoration: "none" }}>
-            <Button colorScheme="blue" size="lg">
-              Join a Project
-            </Button>
-          </RouterLink>
+          {isLoggedIn ? (
+            <>
+              <RouterLink
+                to="/create-project"
+                style={{ textDecoration: "none", marginRight: "10px" }}
+              >
+                <Button colorScheme="green" size="lg">
+                  Create a Project
+                </Button>
+              </RouterLink>
+              <RouterLink to="/join-project" style={{ textDecoration: "none" }}>
+                <Button colorScheme="blue" size="lg">
+                  Join a Project
+                </Button>
+              </RouterLink>
+            </>
+          ) : (
+            <>
+              <RouterLink
+                to="/login"
+                style={{ textDecoration: "none", marginRight: "10px" }}
+              >
+                <Button colorScheme="green" size="lg">
+                  Login
+                </Button>
+              </RouterLink>
+              <RouterLink to="/signup" style={{ textDecoration: "none" }}>
+                <Button colorScheme="blue" size="lg">
+                  Signup
+                </Button>
+              </RouterLink>
+            </>
+          )}
         </div>
       </VStack>
 
@@ -59,7 +93,6 @@ function Home() {
         Code smarter, faster, and together with CodeCrew. Get started now!
       </Text>
 
-      {/* Footer */}
       <Flex
         as="footer"
         width="full"
@@ -115,9 +148,17 @@ function Home() {
           align="start"
         >
           <Heading size="md">HQ</Heading>
-          {/* Placeholder for Google Maps */}
+          {/* Google Maps Integration */}
           <Box height="200px" width="100%" bg="gray.300">
-            {/* Interactive map would go here */}
+            <LoadScript googleMapsApiKey="YOUR_GOOGLE_MAPS_API_KEY">
+              <GoogleMap
+                mapContainerStyle={mapContainerStyle}
+                center={center}
+                zoom={15}
+              >
+                <Marker position={center} />
+              </GoogleMap>
+            </LoadScript>
           </Box>
         </VStack>
       </Flex>
