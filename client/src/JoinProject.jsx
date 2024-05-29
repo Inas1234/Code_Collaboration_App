@@ -21,7 +21,7 @@ function JoinProject() {
   const bgColor = useColorModeValue("#1B1A55", "#1B1A55");
   const navigate = useNavigate();
   const { auth } = useAuth();
-  const { userId } = auth;
+  const { userId, username } = auth;
 
   const handleJoinProject = async () => {
     try {
@@ -30,7 +30,7 @@ function JoinProject() {
         userId,
       });
 
-      socket.emit("join_room", { roomId: roomCode });
+      socket.emit("join_room", { roomId: roomCode, userId, username });
       socket.on("room_joined", (room) => {
         console.log(`Joined room: ${room}`);
         navigate(`/${room}`);

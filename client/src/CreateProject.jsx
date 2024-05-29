@@ -42,7 +42,7 @@ function CreateProject() {
         }
       );
       const { projectId } = response.data;
-      socket.emit("create_room", { roomId: projectId });
+      socket.emit("create_room", { roomId: projectId, userId, username });
       socket.on("room_created", (room) => {
         console.log(`Room created: ${room}`);
         navigate(`/${room}`);

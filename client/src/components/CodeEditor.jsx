@@ -53,7 +53,7 @@ function CodeEditor() {
   useEffect(() => {
     socket.current = io("http://localhost:8080");
 
-    socket.current.emit("join_room", { roomId, userId });
+    socket.current.emit("join_room", { roomId, userId, username });
 
     socket.current.on("code_update", (newCode) => {
       console.log("Received code update:", newCode);
@@ -62,9 +62,11 @@ function CodeEditor() {
 
     socket.current.on("users_update", (updatedUsers) => {
       console.log("Users update:", updatedUsers);
-      const uniqueUsers = [
-        ...new Set(updatedUsers.filter((user) => user != null)),
-      ];
+      const uniqueUsers = updatedUsers.filter(
+        (user, index, self) =>
+          index === self.findIndex((u) => u.userId === user.userId)
+      );
+      console.log("Unique users:", uniqueUsers);
       setUsers(uniqueUsers);
     });
 
@@ -130,7 +132,7 @@ function CodeEditor() {
       const message = { username, text: newMessage, roomId };
       console.log("Sending message:", message);
       socket.current.emit("send_message", message);
-      setNewMessage(""); // Clear the input field after sending
+      setNewMessage("");
     }
   };
 

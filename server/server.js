@@ -25,29 +25,29 @@ io.on("connection", (socket) => {
   console.log("New client connected: " + socket.id);
 
   socket.on("create_room", (data) => {
-    const { roomId, userId } = data;
+    const { roomId, userId, username } = data;
     socket.join(roomId);
     if (!rooms[roomId]) {
-      rooms[roomId] = { users: {}, code: "", messages: [] }; // Add messages array to room
+      rooms[roomId] = { users: {}, code: "", messages: [] };
     }
-    rooms[roomId].users[socket.id] = userId;
+    rooms[roomId].users[socket.id] = { userId, username };
     console.log(`Room created: ${roomId}`);
     socket.emit("room_created", roomId);
     io.to(roomId).emit("users_update", Object.values(rooms[roomId].users));
   });
 
   socket.on("join_room", (data) => {
-    const { roomId, userId } = data;
+    const { roomId, userId, username } = data;
     socket.join(roomId);
     if (!rooms[roomId]) {
-      rooms[roomId] = { users: {}, code: "", messages: [] }; // Add messages array to room
+      rooms[roomId] = { users: {}, code: "", messages: [] };
     }
-    rooms[roomId].users[socket.id] = userId;
+    rooms[roomId].users[socket.id] = { userId, username };
     console.log(`Room joined: ${roomId}`);
     socket.emit("room_joined", roomId);
 
     socket.emit("code_update", rooms[roomId].code);
-    socket.emit("chat_history", rooms[roomId].messages); // Send chat history
+    socket.emit("chat_history", rooms[roomId].messages);
     io.to(roomId).emit("users_update", Object.values(rooms[roomId].users));
   });
 
@@ -63,15 +63,17 @@ io.on("connection", (socket) => {
     if (rooms[roomId]) {
       const message = { username, text, timestamp: new Date() };
       rooms[roomId].messages.push(message);
+      console.log(`Message sent in room ${roomId}: ${text}`);
       io.to(roomId).emit("message", message);
     }
   });
 
   socket.on("ban_user", ({ roomId, userIdToBan }) => {
     const socketIdToBan = Object.keys(rooms[roomId].users).find(
-      (id) => rooms[roomId].users[id] === userIdToBan
+      (id) => rooms[roomId].users[id].userId === userIdToBan
     );
     if (socketIdToBan) {
+      console.log(rooms[roomId].users);
       io.sockets.sockets.get(socketIdToBan).emit("banned");
       io.sockets.sockets.get(socketIdToBan).disconnect();
       delete rooms[roomId].users[socketIdToBan];
